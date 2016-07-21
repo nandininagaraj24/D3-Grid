@@ -1,0 +1,15 @@
+/*rect.cell{
+	stroke:rgba(85, 85, 85, 0.39) !important;
+}*/
+.cursorPosition{
+	left:10%;
+	top:80%;
+}
+#chart{
+	padding-left:10%;
+	padding-top:5%
+}
+#posTracker{
+	padding-left:15%;
+	padding-top:5%
+}

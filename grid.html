@@ -1,0 +1,190 @@
+<html>
+	<head>
+		<script type="text/javascript" src="d3.js"></script>
+		<link rel="stylesheet" type="text/css" href="grid.css">
+	</head>
+	<body>
+		<div id="chart"></div>
+		<div id="posTracker">
+			<div id="value"></div>
+			<div id="coordinates"></div>			
+		</div>
+	</body>
+</html>
+<script type="text/javascript">
+ 
+ generateGrid('#chart', 400, 400,10);
+
+// Testing individual function
+// highlightNodeNeighbors(13,2) 
+ 
+ /*Function that highlights neighbours 
+	Arguments: 
+	nodeId - reference node 
+	p: distance from that node (all cells within this distance will be highlighted
+ */
+ function highlightNodeNeighbors(nodeId,p)
+ {
+	debugger
+	var rows= d3.selectAll(".row")
+	rows.each( function(d, index){
+	debugger
+	var row= d
+	for(var count=0;count<d.length;count++){
+		  if(d[count].i == nodeId){
+		  debugger
+		  var curRow= d[count].row
+		  var curCol = d[count].column
+		  console.log("found nodeeeeeeeeeeee")
+			console.log( this );
+			highlightAdjacent(p,curRow,curCol,nodeId)
+			
+		  }
+	  }
+	})	
+ }
+ 
+ /* Function that finds and fills color to the adjacent cells
+	Arguments: 
+	p: distance from that node (all cells within this distance will be highlighted
+	row: row of the reference node
+	col: column of the reference node
+	nodeId: ith value of the node
+ */
+ function highlightAdjacent(p,row,col,nodeId){
+ debugger
+	var cells= d3.selectAll("rect")
+	cells.each( function(d, index){
+		if(Math.abs(d.row - row)<=p && Math.abs(d.column- col)<=p && d.i != nodeId) {
+		debugger
+			console.log("adjacent node found")
+			//d.style('fill', '#82C1E4')
+			d3.select(this).style('fill', '#82C1E4')
+		}
+	})
+ }
+ 
+ /* Function that creates the grid using d3
+	Arguments:
+	id: div id to display grid
+	width: width of the div
+	height: height of the div
+	n: # of sides
+ */
+function generateGrid(id, width, height,n)
+{
+    var gridData = generateGridData(width, height,n);
+    console.log(gridData);
+    var grid = d3.select(id).append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("class", "chart")
+					
+
+    var row = grid.selectAll(".row")
+                  .data(gridData)
+                .enter().append("svg:g")
+                  .attr("class", "row")
+				  
+	var tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden")
+	.attr("class", "cursorPosition")			  
+
+	
+    var col = row.selectAll(".cell")
+                 .data(function (d) { return d; })
+                .enter().append("svg:rect")
+                 .attr("class", "cell")
+                 .attr("x", function(d) { return d.x; })
+                 .attr("y", function(d) { return d.y; })
+				 .attr("nodeId", function(d) { return d.i; })
+				 .attr("colId", function(d) { return d.column; })
+				 .attr("rowId", function(d) { return d.row; })
+				 .attr("fill", function(d) { return d.fill; })
+                 .attr("width", function(d) { return d.width; })
+                 .attr("height", function(d) { return d.height; })
+				 .on('mouseover', function(d) {
+				 
+				// d3.selectAll(".row:nth-child("+d.row+")").selectAll("rect").style('fill', 'rgb(39, 93, 167)')                    
+				 d3.selectAll(".row:nth-child("+d.row+")").selectAll("rect").style('fill', d.fill)                    
+						var rows = d3.selectAll(".row")[0]
+						for(var i=0;i< rows.length;i++){ 
+							
+							//d3.selectAll(".cell:nth-child("+d.column+")").style('fill', 'rgb(39, 93, 167)')
+							d3.selectAll(".cell:nth-child("+d.column+")").style('fill', d.fill)
+						}
+						//tooltip.text("x:"+((n-d.row)+1)+" y:"+d.column)
+						//tooltip.style("visibility", "visible");
+						d3.select("#coordinates").text("row:"+((n-d.row)+1)+" column:"+d.column)
+						d3.select("#value").text("x:"+d.x+" y:"+d.y)
+						d3.select("#posTracker").style("visibility", "visible");
+                 })
+                 .on('mouseout', function(d) {
+				 d3.selectAll(".row:nth-child("+d.row+")").selectAll("rect").style('fill', '#FFF')                   
+						var rows = d3.selectAll(".row")[0]
+						for(var i=0;i< rows.length;i++){ 
+							
+							d3.selectAll(".cell:nth-child("+d.column+")").style('fill', '#FFF')
+						}
+						//tooltip.style("visibility", "hidden");
+						d3.select("#posTracker").style("visibility", "hidden");
+                 })
+                 .on('click', function(d) {
+				 
+					d3.selectAll(".row").selectAll("rect").style('fill', '#FFF') 
+					highlightAdjacent(1,d.row,d.column,d.i)
+					
+                 })
+                 .style("fill", '#FFF')
+				 .style("stroke", 'rgba(85, 85, 85, 0.39');
+}
+
+/*Function that generates data sets to draw the grid by generating x,y co-ordinates based on width,height,n
+  Arguments:
+  height: height of grid
+  width: width of grid
+  n: # of sides
+*/
+function generateGridData(height, width,n)
+{
+
+    var data = new Array();
+    var cellWidth = width / n;
+    var cellHeight = height / n;
+	var incX = cellWidth;
+    var incY = cellHeight;
+	var nodeValue = 0;
+    var startX = 0;
+    var startY = 0;
+    
+    var curX = startX;
+    var curY = startY;
+
+    for (var row = 0; row < n; row++)
+    {
+        data.push(new Array());
+        for (var col = 0; col < n; col++)
+        {
+            
+			nodeValue= nodeValue + 1
+            data[row].push({ 
+                                column: col+1, 
+                                i: nodeValue,
+                                width: cellWidth,
+                                height: cellHeight,
+                                x: curX,
+                                y: curY,
+                                row: row+1,
+								fill:'rgb(39, 93, 167)'
+                            });
+            curX += incX;
+        }
+        curX = startX;
+        curY += incY;
+    }
+    return data;
+}
+</script>
